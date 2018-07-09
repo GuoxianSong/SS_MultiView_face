@@ -71,4 +71,20 @@ def Package():
 
     np.save(Save_path+'data.npy',data)
     np.save(Save_path+'label.npy',label)
-Package()
+
+def Split():
+    test_num = 10000
+    data = np.load('Input/data.npy')
+    label= np.load('Input/label.npy')
+    train_data= data[test_num:,:]
+    test_data = data[:test_num,:]
+    test_label = label[:test_num,:]
+    train_label = label[test_num:,:]
+    np.save('Input/train_data.npy',train_data)
+    np.save('Input/mean_data.npy',np.mean(data,axis=0))
+    np.save('Input/mean_label.npy', np.mean(label, axis=0))
+    np.save('Input/test_data.npy',test_data)
+    np.save('Input/train_label.npy',train_label)
+    np.save('Input/test_label.npy',test_label)
+
+Split()
