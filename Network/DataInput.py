@@ -50,4 +50,25 @@ def Normalize(image,landmark_):
     return res
 
 
-Run()
+def Package():
+    Save_path = 'Input/'
+    image_list = glob.glob('CoarseData/CoarseData/*/*.png')
+    data = np.zeros((len(image_list),224,224,3),dtype=np.uint8)
+    label = np.zeros((len(image_list),185))
+    for i in range(len(image_list)):
+        print(i)
+        path_ = image_list[i]
+        img = cv2.imread(path_)
+
+        f = open(path_[:len(path_)-8]+'.txt')
+        content = f.readlines()
+        content= [x.strip() for x in content]
+        label[i,:100] = np.array(content[0].split(" "),dtype = np.float)
+        label[i,100:179] = np.array(content[1].split(" "),dtype = np.float)
+        label[i,179:] = np.array(content[2].split(" "),dtype = np.float)
+        f.close()
+        data[i,:,:] = np.array(img,dtype=np.uint8)
+
+    np.save(Save_path+'data.npy',data)
+    np.save(Save_path+'label.npy',label)
+Package()
