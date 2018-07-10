@@ -98,7 +98,7 @@ def train():
         sess.run(init)
 
         # Create a saver.
-        saver = tf.train.Saver(tf.global_variables(), max_to_keep=10000)
+        saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
         if FLAGS.checkpoint is not None:
             print('Load checkpoint %s' % FLAGS.checkpoint)
             saver.restore(sess, FLAGS.checkpoint)
@@ -110,7 +110,7 @@ def train():
             vars_restore = [var for var in variables
                             if not "Momentum" in var.name and
                                not "global_step" in var.name]
-            saver_restore = tf.train.Saver(vars_restore, max_to_keep=10000)
+            saver_restore = tf.train.Saver(vars_restore, max_to_keep=10)
             saver_restore.restore(sess, FLAGS.basemodel)
         else:
             print('No checkpoint file of basemodel found. Start from the scratch.')
