@@ -7,7 +7,7 @@ import utils
 
 
 HParams = namedtuple('HParams',
-                    'batch_size, num_gpus, num_classes, weight_decay, '
+                    'batch_size, num_gpus, num_output, weight_decay, '
                      'momentum, finetune')
 
 class ResNet(object):
@@ -61,22 +61,9 @@ class ResNet(object):
             print('\tBuilding unit: %s' % scope.name)
             x = tf.reduce_mean(x, [1, 2])
             x = self._fc(x, self._hp.num_classes)
-
         logits = x
-
-        # Probs & preds & acc
-        probs = tf.nn.softmax(x)
-        preds = tf.to_int32(tf.argmax(logits, 1))
-        ones = tf.constant(np.ones([self._hp.batch_size]), dtype=tf.float32)
-        zeros = tf.constant(np.zeros([self._hp.batch_size]), dtype=tf.float32)
-        correct = tf.where(tf.equal(preds, labels), ones, zeros)
-        acc = tf.reduce_mean(correct)
-
-        # Loss & acc
-        losses = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=x, labels=labels)
-        loss = tf.reduce_mean(losses)
-
-        return logits, preds, loss, acc
+        loss = tf.reduce_mean(tf.square(logits - labels))
+        return logits, loss
 
 
     def build_model(self):
@@ -86,9 +73,8 @@ class ResNet(object):
 
         # Build towers for each GPU
         self._logits_list = []
-        self._preds_list = []
         self._loss_list = []
-        self._acc_list = []
+
 
         for i in range(self._hp.num_gpus):
             with tf.device('/GPU:%d' % i), tf.variable_scope(tf.get_variable_scope()):
@@ -96,21 +82,17 @@ class ResNet(object):
                     print('Build a tower: %s' % scope)
                     if self._reuse_weights or i > 0:
                         tf.get_variable_scope().reuse_variables()
-
-                    logits, preds, loss, acc = self.build_tower(self._images[i], self._labels[i])
+                    logits, loss = self.build_tower(self._images[i], self._labels[i])
                     self._logits_list.append(logits)
-                    self._preds_list.append(preds)
                     self._loss_list.append(loss)
-                    self._acc_list.append(acc)
+
 
         # Merge losses, accuracies of all GPUs
         with tf.device('/CPU:0'):
             self.logits = tf.concat(self._logits_list, axis=0, name="logits")
-            self.preds = tf.concat(self._preds_list, axis=0, name="predictions")
-            self.loss = tf.reduce_mean(self._loss_list, name="cross_entropy")
-            tf.summary.scalar((self._name+"/" if self._name else "") + "cross_entropy", self.loss)
-            self.acc = tf.reduce_mean(self._acc_list, name="accuracy")
-            tf.summary.scalar((self._name+"/" if self._name else "") + "accuracy", self.acc)
+            self.loss = tf.reduce_mean(self._loss_list, name="mse")
+            tf.summary.scalar((self._name+"/" if self._name else "") + "mse", self.loss)
+
 
 
 

@@ -87,4 +87,4 @@ def Split():
     np.save('Input/train_label.npy',train_label)
     np.save('Input/test_label.npy',test_label)
 
-Split()
+#Split()
