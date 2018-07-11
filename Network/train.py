@@ -7,9 +7,7 @@ import tensorflow as tf
 import numpy as np
 import resnet
 
-
-
-# Dataset Configuration
+tf.app.flags.DEFINE_boolean('is_Train', True, """If is for training""")
 
 # Network Configuration
 tf.app.flags.DEFINE_integer('batch_size', 256, """Number of images to process in a batch.""")
@@ -99,21 +97,21 @@ def train():
 
         # Create a saver.
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
-        if FLAGS.checkpoint is not None:
-            print('Load checkpoint %s' % FLAGS.checkpoint)
-            saver.restore(sess, FLAGS.checkpoint)
-            init_step = global_step.eval(session=sess)
-        elif FLAGS.basemodel:
-            # Define a different saver to save model checkpoints
-            print('Load parameters from basemodel %s' % FLAGS.basemodel)
-            variables = tf.global_variables()
-            vars_restore = [var for var in variables
-                            if not "Momentum" in var.name and
-                               not "global_step" in var.name]
-            saver_restore = tf.train.Saver(vars_restore, max_to_keep=10)
-            saver_restore.restore(sess, FLAGS.basemodel)
-        else:
-            print('No checkpoint file of basemodel found. Start from the scratch.')
+        # if FLAGS.checkpoint is not None:
+        #     print('Load checkpoint %s' % FLAGS.checkpoint)
+        #     saver.restore(sess, FLAGS.checkpoint)
+        #     init_step = global_step.eval(session=sess)
+        # # elif FLAGS.basemodel:
+        # #     # Define a different saver to save model checkpoints
+        # #     print('Load parameters from basemodel %s' % FLAGS.basemodel)
+        # #     variables = tf.global_variables()
+        # #     vars_restore = [var for var in variables
+        # #                     if not "Momentum" in var.name and
+        # #                        not "global_step" in var.name]
+        # #     saver_restore = tf.train.Saver(vars_restore, max_to_keep=10)
+        # #     saver_restore.restore(sess, FLAGS.basemodel)
+        # else:
+        #     print('No checkpoint file of basemodel found. Start from the scratch.')
 
 
         if not os.path.exists(FLAGS.train_dir):
@@ -131,7 +129,7 @@ def train():
         for step in range(init_step, FLAGS.max_steps):
 
             offset = (step * FLAGS.batch_size) % (train_labels.shape[0] - FLAGS.batch_size)
-            batch_data = train_images[offset:(offset + FLAGS.batch_size), :, :]
+            batch_data = train_images[offset:(offset + FLAGS.batch_size), :, :,:]
             batch_labels = train_labels[offset:(offset + FLAGS.batch_size), :]
 
 

@@ -60,7 +60,7 @@ class ResNet(object):
         with tf.variable_scope('logits') as scope:
             print('\tBuilding unit: %s' % scope.name)
             x = tf.reduce_mean(x, [1, 2])
-            x = self._fc(x, self._hp.num_classes)
+            x = self._fc(x, self._hp.num_output)
         logits = x
         loss = tf.reduce_mean(tf.square(logits - labels))
         return logits, loss
@@ -68,8 +68,8 @@ class ResNet(object):
 
     def build_model(self):
         # Split images and labels into (num_gpus) groups
-        # images = tf.split(self._images, num_or_size_splits=self._hp.num_gpus, axis=0)
-        # labels = tf.split(self._labels, num_or_size_splits=self._hp.num_gpus, axis=0)
+        images = tf.split(self._images, num_or_size_splits=self._hp.num_gpus, axis=0)
+        labels = tf.split(self._labels, num_or_size_splits=self._hp.num_gpus, axis=0)
 
         # Build towers for each GPU
         self._logits_list = []
@@ -82,7 +82,7 @@ class ResNet(object):
                     print('Build a tower: %s' % scope)
                     if self._reuse_weights or i > 0:
                         tf.get_variable_scope().reuse_variables()
-                    logits, loss = self.build_tower(self._images[i], self._labels[i])
+                    logits, loss = self.build_tower(images[i], labels[i])
                     self._logits_list.append(logits)
                     self._loss_list.append(loss)
 
