@@ -86,13 +86,14 @@ def train():
 
         # Build an initialization operation to run below.
         init = tf.global_variables_initializer()
-
+        print("sess 0")
         # Start running operations on the Graph.
         sess = tf.Session(config=tf.ConfigProto(
             gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=FLAGS.gpu_fraction),
             allow_soft_placement=False,
             # allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement))
+        print("sess 1")
         sess.run(init)
         print("sess done")
         # Create a saver.
