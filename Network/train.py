@@ -29,7 +29,7 @@ tf.app.flags.DEFINE_string('train_dir', './train', """Directory where to write l
 tf.app.flags.DEFINE_integer('max_steps', 500000, """Number of batches to run.""")
 tf.app.flags.DEFINE_integer('display', 100, """Number of iterations to display training info.""")
 tf.app.flags.DEFINE_integer('checkpoint_interval', 10000, """Number of iterations to save parameters as a checkpoint""")
-tf.app.flags.DEFINE_float('gpu_fraction', 0.95, """The fraction of GPU memory to be allocated""")
+tf.app.flags.DEFINE_float('gpu_fraction', 0.8, """The fraction of GPU memory to be allocated""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False, """Whether to log device placement.""")
 tf.app.flags.DEFINE_string('basemodel', None, """Base model to load paramters""")
 tf.app.flags.DEFINE_string('checkpoint', None, """Model checkpoint to load""")
