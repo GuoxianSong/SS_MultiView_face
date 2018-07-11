@@ -94,7 +94,7 @@ def train():
             # allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement))
         sess.run(init)
-
+        print("sess done")
         # Create a saver.
         saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
         # if FLAGS.checkpoint is not None:
@@ -126,13 +126,12 @@ def train():
         train_labels = train_labels-mean_data
         test_label = test_label-mean_label
         test_data = test_data-mean_data
+        print("data done")
         for step in range(init_step, FLAGS.max_steps):
 
             offset = (step * FLAGS.batch_size) % (train_labels.shape[0] - FLAGS.batch_size)
             batch_data = train_images[offset:(offset + FLAGS.batch_size), :, :,:]
             batch_labels = train_labels[offset:(offset + FLAGS.batch_size), :]
-
-
             # Train
             lr_value = get_lr(FLAGS.initial_lr, FLAGS.lr_decay, one_epoch_step, step)
             start_time = time.time()
