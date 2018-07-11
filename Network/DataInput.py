@@ -87,4 +87,13 @@ def Split():
     np.save('Input/train_label.npy',train_label)
     np.save('Input/test_label.npy',test_label)
 
+
+def LabedStd():
+    label = np.load('Input/label.npy')
+    np.save('Input/std_label.npy',np.std(label,axis=0))
+LabedStd()
+
+
+
+
 #Split()

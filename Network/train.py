@@ -7,18 +7,20 @@ import tensorflow as tf
 import numpy as np
 import resnet
 
-tf.app.flags.DEFINE_boolean('is_Train', True, """If is for training""")
 
+
+tf.app.flags.DEFINE_boolean('is_Train', True, """If is for training""")
+tf.app.flags.DEFINE_boolean('is_Simple',True,"""Test on simple model""")
 # Network Configuration
-tf.app.flags.DEFINE_integer('batch_size', 256, """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_integer('num_gpus', 2, """Number of GPUs.""")
+tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
+tf.app.flags.DEFINE_integer('num_gpus', 1, """Number of GPUs.""")
 
 # Optimization Configuration
 tf.app.flags.DEFINE_float('l2_weight', 0.0001, """L2 loss weight applied all the weights""")
 tf.app.flags.DEFINE_float('momentum', 0.9, """The momentum of MomentumOptimizer""")
-tf.app.flags.DEFINE_float('initial_lr', 0.1, """Initial learning rate""")
+tf.app.flags.DEFINE_float('initial_lr', 0.0001, """Initial learning rate""")
 
-tf.app.flags.DEFINE_float('lr_decay', 0.1, """Learning rate decay factor""")
+tf.app.flags.DEFINE_float('lr_decay', 0.5, """Learning rate decay factor""")
 tf.app.flags.DEFINE_boolean('finetune', False, """Whether to finetune.""")
 
 
@@ -27,7 +29,7 @@ tf.app.flags.DEFINE_integer('dim_output',185,"""output dimension""")
 # Training Configuration
 tf.app.flags.DEFINE_string('train_dir', './train', """Directory where to write log and checkpoint.""")
 tf.app.flags.DEFINE_integer('max_steps', 500000, """Number of batches to run.""")
-tf.app.flags.DEFINE_integer('display', 100, """Number of iterations to display training info.""")
+tf.app.flags.DEFINE_integer('display', 10, """Number of iterations to display training info.""")
 tf.app.flags.DEFINE_integer('checkpoint_interval', 10000, """Number of iterations to save parameters as a checkpoint""")
 tf.app.flags.DEFINE_float('gpu_fraction', 0.8, """The fraction of GPU memory to be allocated""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False, """Whether to log device placement.""")
@@ -35,6 +37,11 @@ tf.app.flags.DEFINE_string('basemodel', None, """Base model to load paramters"""
 tf.app.flags.DEFINE_string('checkpoint', None, """Model checkpoint to load""")
 
 FLAGS = tf.app.flags.FLAGS
+
+if(FLAGS.is_Simple==True):
+    os.chdir("/home/song/Desktop/Code/SS_MultiView_face/")
+else:
+    os.chdir("/media/songguoxian/DATA/UnixFolder/3DMM/Coarse_Dataset/Coarse_Dataset/")
 
 
 def get_lr(initial_lr, lr_decay, one_epoch_step, global_step):
@@ -47,18 +54,24 @@ def get_lr(initial_lr, lr_decay, one_epoch_step, global_step):
 def train():
 
     def Load():
-        train_data = np.load("Input/train_data.npy")
-        train_label = np.load("Input/train_label.npy")
+        if(FLAGS.is_Simple):
+            train_data = np.load("Input/test_data.npy")
+            train_label = np.load("Input/test_label.npy")
+        else:
+            train_data = np.load("Input/train_data.npy")
+            train_label = np.load("Input/train_label.npy")
         test_data  = np.load("Input/test_data.npy")
         test_label = np.load("Input/test_label.npy")
         mean_data  = np.load("Input/mean_data.npy")
         mean_label = np.load("Input/mean_label.npy")
+        std_label = np.load("Input/std_label.npy")
+
 
         permutation = np.random.permutation(train_data.shape[0])
         train_images=train_data[permutation,:,:,:]
         train_labels=train_label[permutation,:]
 
-        return train_images,train_labels,test_data,test_label,mean_data,mean_label
+        return train_images,train_labels,test_data,test_label,mean_data,mean_label,std_label
 
 
     with tf.Graph().as_default():
@@ -121,12 +134,12 @@ def train():
                                                 sess.graph)
 
         # Training!
-        train_images, train_labels, test_data, test_label, mean_data, mean_label= Load()
+        train_images, train_labels, test_data, test_label, mean_data, mean_label,std_label= Load()
         one_epoch_step  =int(len(train_labels)/FLAGS.batch_size)
-        train_images = train_images-mean_data
-        train_labels = train_labels-mean_data
-        test_label = test_label-mean_label
-        test_data = test_data-mean_data
+        train_images = (train_images-mean_data)/255.0
+        train_labels = (train_labels-mean_label)/std_label
+        test_label = (test_label-mean_label)/255.0
+        test_data = (test_data-mean_data)/std_label
         print("data done")
         for step in range(init_step, FLAGS.max_steps):
 
