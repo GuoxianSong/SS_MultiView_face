@@ -9,7 +9,7 @@ import resnet
 
 
 
-tf.app.flags.DEFINE_boolean('is_Train', True, """If is for training""")
+tf.app.flags.DEFINE_boolean('is_Train', False, """If is for training""")
 tf.app.flags.DEFINE_boolean('is_Simple',True,"""Test on simple model""")
 # Network Configuration
 tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
@@ -138,8 +138,9 @@ def train():
         one_epoch_step  =int(len(train_labels)/FLAGS.batch_size)
         train_images = (train_images-mean_data)/255.0
         train_labels = (train_labels-mean_label)/std_label
-        test_label = (test_label-mean_label)/255.0
-        test_data = (test_data-mean_data)/std_label
+
+        test_data = (test_data-mean_data)/ 255.0
+        test_label= (test_label - mean_label) /std_label
         print("data done")
         for step in range(init_step, FLAGS.max_steps):
 
