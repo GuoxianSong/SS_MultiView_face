@@ -8,12 +8,12 @@ import numpy as np
 import resnet
 
 
-
-tf.app.flags.DEFINE_boolean('is_Train', False, """If is for training""")
-tf.app.flags.DEFINE_boolean('is_Simple',True,"""Test on simple model""")
+tf.app.flags.DEFINE_boolean('is_Server', True, """If is for server""")
+tf.app.flags.DEFINE_boolean('is_Train', True, """If is for training""")
+tf.app.flags.DEFINE_boolean('is_Simple',False,"""Test on simple model""")
 # Network Configuration
 tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_integer('num_gpus', 1, """Number of GPUs.""")
+tf.app.flags.DEFINE_integer('num_gpus', 2, """Number of GPUs.""")
 
 # Optimization Configuration
 tf.app.flags.DEFINE_float('l2_weight', 0.0001, """L2 loss weight applied all the weights""")
@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_integer('dim_output',185,"""output dimension""")
 
 # Training Configuration
 tf.app.flags.DEFINE_string('train_dir', './train', """Directory where to write log and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 500000, """Number of batches to run.""")
+tf.app.flags.DEFINE_integer('max_steps', 300000, """Number of batches to run.""")
 tf.app.flags.DEFINE_integer('display', 10, """Number of iterations to display training info.""")
 tf.app.flags.DEFINE_integer('checkpoint_interval', 10000, """Number of iterations to save parameters as a checkpoint""")
 tf.app.flags.DEFINE_float('gpu_fraction', 0.8, """The fraction of GPU memory to be allocated""")
@@ -41,7 +41,10 @@ FLAGS = tf.app.flags.FLAGS
 if(FLAGS.is_Simple==True):
     os.chdir("/home/song/Desktop/Code/SS_MultiView_face/")
 else:
-    os.chdir("/media/songguoxian/DATA/UnixFolder/3DMM/Coarse_Dataset/Coarse_Dataset/")
+    if(FLAGS.is_Server==True):
+        os.chdir("/home/guoxian/Coarse_3DMM/")
+    else:
+        os.chdir("/media/songguoxian/DATA/UnixFolder/3DMM/Coarse_Dataset/Coarse_Dataset/")
 
 
 def get_lr(initial_lr, lr_decay, one_epoch_step, global_step):
@@ -166,6 +169,12 @@ def train():
                               'sec/batch)')
                 print (format_str % (datetime.now(), step, loss_value, lr_value,
                                      examples_per_sec, sec_per_batch))
+
+                elapse = time.time() - start_time
+                time_left = (FLAGS.max_steps - step) * elapse
+                print("\tTime left: %02d:%02d:%02d" %
+                      (int(time_left / 3600), int(time_left % 3600 / 60), time_left % 60))
+
                 summary_writer.add_summary(train_summary_str, step)
 
             # Save the model checkpoint periodically.
